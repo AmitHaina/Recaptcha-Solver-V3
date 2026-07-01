@@ -1,4 +1,4 @@
-﻿# recap
+# recap
 
 A **Playwright-based reCAPTCHA v3 solver** with runtime browser-fingerprint rotation
 and humanized interaction. It drives a real Chromium instance so Google's own
