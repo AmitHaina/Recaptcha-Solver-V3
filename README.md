@@ -2,8 +2,8 @@
 
 A **Playwright-based reCAPTCHA v3 solver** with runtime browser-fingerprint rotation
 and humanized interaction. It drives a real Chromium instance so Google's own
-reCAPTCHA script collects a genuine, internally consistent fingerprint — the only
-reliable way to earn a high v3 score.
+reCAPTCHA script collects a genuine, internally consistent fingerprint, which is
+the only reliable way to earn a high v3 score.
 
 
 
@@ -22,14 +22,14 @@ generate fingerprint  ->  align timezone/geo to proxy  ->  launch Chromium
         ->  humanized mouse / scroll / focus  ->  grecaptcha.execute  ->  token
 ```
 
-- **Fingerprint rotation** — correlated hardware profiles (GPU ↔ cores ↔ memory),
+- **Fingerprint rotation**: correlated hardware profiles (GPU, cores, memory),
   resolution-matched DPR, locale-matched voices, screen, UA, battery.
-- **Anti-detection patches** — canvas/WebGL noise, `storage.estimate`, enriched
+- **Anti-detection patches**: canvas/WebGL noise, `storage.estimate`, enriched
   `chrome.runtime`, `mediaDevices`, all applied surgically to stay consistent
   with the signals reCAPTCHA actually hashes.
-- **Humanized behavior** — bezier-curve mouse movement with entry sweep,
+- **Humanized behavior**: bezier-curve mouse movement with entry sweep,
   decelerating scroll, real (trusted) clicks and focus, multi-step warmup.
-- **Proxy aware** — timezone and geolocation are aligned to the proxy's IP.
+- **Proxy aware**: timezone and geolocation are aligned to the proxy's IP.
 
 ---
 
@@ -76,11 +76,11 @@ token = solve(
 
 | Option           | Default    | Description                                            |
 | ---------------- | ---------- | ------------------------------------------------------ |
-| `proxy`          | `None`     | `http://user:pass@host:port` — timezone/geo align to it |
+| `proxy`          | `None`     | `http://user:pass@host:port` (timezone/geo align to it) |
 | `headless`       | `True`     | Run Chromium headless                                  |
 | `warmup`         | `True`     | Build a short browsing history before the target       |
 | `debug`          | `False`    | Print per-stage timing                                 |
-| `user_data_dir`  | `None`     | Persistent profile — cookies/trust accumulate over runs |
+| `user_data_dir`  | `None`     | Persistent profile; cookies/trust accumulate over runs |
 | `enterprise`     | `False`    | Use the enterprise `grecaptcha` API                    |
 
 > Tip: a **residential proxy** plus a **persistent `user_data_dir`** raises the
@@ -142,10 +142,10 @@ Pull requests are welcome. To keep the solver consistent (reCAPTCHA punishes
 *inconsistency* far more than any single "bad" value), please:
 
 1. **Fork** the repo and create a feature branch.
-2. Keep changes **surgical** — touch only what's needed, and make sure any
+2. Keep changes **surgical**: touch only what's needed, and make sure any
    fingerprint/patch change stays internally consistent (e.g. GPU must match the
    UA, `deviceMemory` must stay within spec).
-3. In your PR description, **explain what you changed and why** — which signal it
+3. In your PR description, **explain what you changed and why**: which signal it
    affects and how you verified it doesn't create a detectable mismatch.
 
 ---
