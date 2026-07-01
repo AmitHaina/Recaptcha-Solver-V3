@@ -221,17 +221,31 @@ class Recaptcha:
     async def _warmup(self, page) -> None:
         """Multi-step warmup that builds a realistic history before the target."""
         domain, paths = random.choice(_WARMUP_SEQUENCES)
-        for i, path in enumerate(paths):
-            try:
-                url = f"https://www.{domain}/{path}"
-                await page.goto(url, wait_until="domcontentloaded", timeout=15000)
-                await page.wait_for_timeout(random.randint(1500, 3000))
-                await self._humanize(page)
-                # Linger a little longer on the final page, as people do.
-                if i == len(paths) - 1:
-                    await page.wait_for_timeout(random.randint(1000, 2000))
-            except Exception:
-                continue
+
+        # Warmup only needs the navigation + behavior, not the pixels. Drop
+        # heavy resources so these pages settle fast; the real target page is
+        # never routed, so its fingerprint is unaffected.
+        async def _block(route):
+            if route.request.resource_type in ("image", "media", "font"):
+                await route.abort()
+            else:
+                await route.continue_()
+
+        await page.route("**/*", _block)
+        try:
+            for i, path in enumerate(paths):
+                try:
+                    url = f"https://www.{domain}/{path}"
+                    await page.goto(url, wait_until="commit", timeout=15000)
+                    await page.wait_for_timeout(random.randint(1500, 3000))
+                    await self._humanize(page)
+                    # Linger a little longer on the final page, as people do.
+                    if i == len(paths) - 1:
+                        await page.wait_for_timeout(random.randint(1000, 2000))
+                except Exception:
+                    continue
+        finally:
+            await page.unroute("**/*", _block)
 
     async def _simulate_focus(self, page) -> None:
         """Ensure the tab is genuinely focused/visible before interacting.
