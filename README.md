@@ -118,7 +118,42 @@ curl http://localhost:8778/jobs/<job_id>
 | `/jobs/{id}`        | `GET`    | Poll job state                |
 | `/jobs/{id}`        | `DELETE` | Drop a finished job           |
 
+### Hosted endpoint
+
+A live instance is available. You can use this endpoint to solve without running
+the server yourself:
+
+```python
+import requests
+
+session = requests.Session()
+
+solver_url = "https://recapv3.hainahola.com/solve"
+solver_data = {
+    "url": "https://recaptcha-test.hainahola.com/",
+    "sitekey": "6Lfmnz8tAAAAAP06n7wf3K3e5a6-rcTfqQ5iAdd0",
+    "action": "submit",
+    "timeout": 120,
+}
+
+result = session.post(solver_url, json=solver_data, timeout=150).json()
+print("SOLVE RESULT:", result)
+token = result.get("token")
+if not token:
+    raise SystemExit(f"solve failed: {result.get('error')}")
+print("TOKEN:", token)
+
+verify = session.post(
+    "https://recaptcha-test.hainahola.com/verify",
+    json={"token": token},
+    timeout=15,
+).json()
+print("VERIFY:", verify)
+print("SCORE:", verify.get("score"))
+```
+
 ---
+
 
 ## Project structure
 
