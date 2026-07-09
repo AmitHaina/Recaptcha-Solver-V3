@@ -371,7 +371,31 @@ class Recaptcha:
         await page.wait_for_timeout(random.randint(200, 500))
 
         api = "grecaptcha.enterprise" if enterprise else "grecaptcha"
+        src = (
+            f"https://www.google.com/recaptcha/enterprise.js?render={sitekey}"
+            if enterprise
+            else f"https://www.google.com/recaptcha/api.js?render={sitekey}"
+        )
         try:
+            # Some target pages don't preload grecaptcha (e.g. sites behind
+            # Cloudflare Managed Challenge only inject it on the challenge
+            # interstitial). Inject the script ourselves if it's missing; a
+            # no-op when the page already has it.
+            await page.evaluate(
+                """([api, src]) => new Promise((resolve, reject) => {
+                    const get = () => api.split('.').reduce(
+                        (o, k) => (o == null ? o : o[k]), window
+                    );
+                    if (get()) return resolve();
+                    const s = document.createElement('script');
+                    s.src = src;
+                    s.async = true;
+                    s.onload = () => resolve();
+                    s.onerror = () => reject(new Error('inject failed: ' + src));
+                    document.head.appendChild(s);
+                })""",
+                [api, src],
+            )
             token = await page.evaluate(
                 """
                 ([api, sitekey, action]) => new Promise((resolve, reject) => {
